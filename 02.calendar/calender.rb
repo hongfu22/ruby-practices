@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
-require 'color_echo'
 require "date"
 require 'optparse'
+require 'highline'
 
 # コマンドライン引数
 options = ARGV.getopts('y:', 'm:')
@@ -29,20 +29,22 @@ end
 day = ["日", "月", "火", "水", "木", "金", "土"]
 
 # 月初
-firstDay = Date.new(year.to_i, month.to_i, 1)
+first_day = Date.new(year.to_i, month.to_i, 1)
 # 月末
-lastDay = Date.new(year.to_i, month.to_i, -1)
+last_day = Date.new(year.to_i, month.to_i, -1)
 
 # 日数カウンター
-dayNumCount = 1
+day_num_count = 1
 # 出力列
-rowCount = firstDay.wday
+row_count = first_day.wday
 # 初期位置
-startPosition = "    " * rowCount
-
-# 本日と同年同月の場合に本日の日付の色を変更する
-if today.year == year && today.month == month
-    CE.pickup(today.day.to_s, :h_white, :red, :underline)
+start_position = "    " * row_count
+p month
+# 本日と同年同月の場合にフラグを立てハイライトのオブジェクト作成
+today_flg = false
+if today.year == year && today.month == month.to_i
+    today_flg = true
+    h = HighLine.new
 end
 
 # -------------------
@@ -53,22 +55,31 @@ end
 puts  "#{month}月 #{year}年"
 
 # 曜日文字列出力
-dayOutput = day.join("  ")
-puts dayOutput
+day_output = day.join("  ")
+puts day_output
 
-print startPosition
+print start_position
 
 # 日数出力
-while dayNumCount <= lastDay.day do
-    print " " if dayNumCount <= 9
-    print dayNumCount
-    if rowCount == 6
+while day_num_count <= last_day.day do
+    # 10以下の場合は幅合わせのためにスペースをプリント
+    print " " if day_num_count <= 9
+
+    # フラグがありかつ今日と同じ日付の場合は色を付けて出力
+    if today_flg && day_num_count == today.day
+        print h.color(day_num_count.to_s, :red)
+    else
+        print day_num_count.to_s
+    end
+
+    # 土曜日の場合は改行し出力位置を日曜日に設定、それ以外は次の曜日に位置がうつる
+    if row_count == 6
         print "\n"
-        rowCount = 0
+        row_count = 0
     else
         print "  "
-        rowCount += 1
+        row_count += 1
     end
-    dayNumCount += 1
+    day_num_count += 1
 end
 print "\n"
