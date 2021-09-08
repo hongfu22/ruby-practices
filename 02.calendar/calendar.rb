@@ -10,23 +10,11 @@ options = ARGV.getopts('y:', 'm:')
 today = Date.today
 
 # 年度設定
-year = ""
-if options["y"]
-  year = options["y"]
-else
-  year = today.year
-end
+year = options["y"] || today.year
 
 # 月設定
-month = ""
-if options["m"]
-  month = options["m"]
-else
-  month = today.month
-end
+month = options["m"] || today.month
 
-# 曜日
-day = ["日", "月", "火", "水", "木", "金", "土"]
 
 # 月初
 first_day = Date.new(year.to_i, month.to_i, 1)
@@ -37,8 +25,7 @@ last_day = Date.new(year.to_i, month.to_i, -1)
 day_num_count = 1
 # 出力列
 row_count = first_day.wday
-# 初期位置
-start_position = "    " * row_count
+
 
 # 本日と同年同月の場合にフラグを立てハイライトのオブジェクト作成
 today_flg = false
@@ -54,11 +41,13 @@ end
 8.times { print " " }
 puts  "#{month}月 #{year}年"
 
+# 曜日
+day = ["日", "月", "火", "水", "木", "金", "土"]
 # 曜日文字列出力
 day_output = day.join("  ")
 puts day_output
 
-print start_position
+print "    " * row_count
 
 # 日数出力
 while day_num_count <= last_day.day do
