@@ -3,8 +3,10 @@
 
 require 'optparse'
 
+opt = OptionParser.new
+argv = opt.parse!(ARGV)
 # ファイル指定が無ければカレントディレクトリ、あれば指定したパスを取得
-file_path = ARGV.empty? ? './' : ARGV[0]
+file_path = argv.empty? ? './' : argv[0]
 
 class FileList
   TAB_LENGTH = 8
