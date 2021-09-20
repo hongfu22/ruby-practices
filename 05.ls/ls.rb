@@ -93,5 +93,11 @@ class FileList
   end
 end
 
-file_list = FileList.new(file_path, 3)
-file_list.main
+if Dir.exist?(file_path)
+  file_list = FileList.new(file_path, 3)
+  file_list.main
+elsif File.exist?(file_path)
+  puts file_path
+else
+  puts format('ls.rb: %s: No such file or directory', file_path)
+end
