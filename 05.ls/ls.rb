@@ -11,14 +11,11 @@ file_path = argv.empty? ? './' : argv[0]
 class FileList
   TAB_LENGTH = 8
 
-  attr_accessor :row
-  attr_reader :file_path
-
   def initialize(file_path, row)
     @file_path = file_path
-    @row = row.floor.to_f
+    @row = row.to_f
     # パス内の.始まりを除いたファイル、ディレクトリを取得
-    @files = Dir.glob('*'.encode('utf-8'), base: @file_path)
+    @files = Dir.glob('*', base: @file_path)
   end
 
   # 起点メソッド
@@ -40,18 +37,20 @@ class FileList
     output_list(output_file_array)
   end
 
+  private
+
   def output_list(files)
     files.each { |file| puts file }
   end
 
   # 各列ごとに一番長い文字列の文字数を取得する
-  def fetch_max_name_length(col_num, files)
+  def fetch_max_name_length(col_num, file_array)
     max_length = 0
     # 指定されている列数ごとにパスの配列を順番に分け各列の最長文字数を取得
-    files.each_slice(col_num) do |file|
-      file.each do |f|
+    file_array.each_slice(col_num) do |files|
+      files.each do |file|
         # ファイル名の長さをはかる
-        length = measure_name_width(f)
+        length = measure_name_width(file)
         max_length = length if max_length < length
       end
     end
@@ -61,7 +60,7 @@ class FileList
   # 日本語を2文字としてカウントする関数
   def measure_name_width(name)
     # ファイル名のサイズ（全て半角）と日本語の全角で出る余分な半角分を足してパスの長さとする
-    name.size + name.chars.count { |letter| letter.ascii_only? == false }
+    name.size + name.chars.count { |letter| not letter.ascii_only? }
   end
 
   def inspect_column_width?(max_length)
@@ -70,7 +69,7 @@ class FileList
     # １行の幅を計算、タブの数（列数-1）と列数分の最大文字数
     row_width = tab_width * (@row - 1) + max_length * @row
     # １行分を連結した幅がコマンドラインの幅よりも大きい場合は列数を少なくして再度関数呼び出し
-    true if row_width >= `tput cols`.to_i
+    row_width >= `tput cols`.to_i
   end
 
   # 行毎にパスを纏め配列にする
