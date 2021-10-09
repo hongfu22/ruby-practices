@@ -30,9 +30,9 @@ class FileList
     return produce_file_lists(@row -= 1) if inspect_column_width?(max_length)
 
     # 出力用に行ごとに文字列に纏め配列に格納する
-    output_file_array = produce_each_column_array(col_num, max_length, @files)
+    output_files = produce_each_column_array(col_num, max_length, @files)
     # ターミナルに出力する
-    output_list(output_file_array)
+    output_list(output_files)
   end
 
   private
@@ -76,15 +76,15 @@ class FileList
     # 行数分だけ繰り返し各行の要素を加工
     col_num.times do |column|
       # 対象行(column)の各列(target_num)のファイルパスを取り出し格納する
-      each_row_array = []
+      each_rows = []
       column.step(files.length, col_num) do |target_num|
         unless files[target_num].nil?
           # 一番長い文字に合わせて左詰めに整形し格納する
-          each_row_array << format("%-#{max_length}s", files[target_num])
+          each_rows << format("%-#{max_length}s", files[target_num])
         end
       end
       # １行にタブで区切って連結
-      path_list << each_row_array.join("\t")
+      path_list << each_rows.join("\t")
     end
     path_list
   end
