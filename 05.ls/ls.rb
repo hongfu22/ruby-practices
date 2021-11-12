@@ -4,8 +4,8 @@
 require 'optparse'
 
 opt = OptionParser.new
-option = ""
-opt.on('-a'){option = "a"}
+option = ''
+opt.on('-a') { option = 'a' }
 argv = opt.parse!(ARGV)
 # ファイル指定が無ければカレントディレクトリ、あれば指定したパスを取得
 file_path = argv.empty? ? './' : argv[0]
@@ -14,13 +14,14 @@ class FileList
   TAB_LENGTH = 8
   def initialize(file_path, row, option)
     @row = row
-    case option
-    when "a"
-      @files = Dir.glob("*", File::FNM_DOTMATCH, base: file_path)
-    else
-      # パス内の.始まりを除いたファイル、ディレクトリを取得
-      @files = Dir.glob('*', base: file_path)
-    end
+    @files =
+      case option
+      when 'a'
+        Dir.glob('*', File::FNM_DOTMATCH, base: file_path)
+      else
+        # パス内の.始まりを除いたファイル、ディレクトリを取得
+        Dir.glob('*', base: file_path)
+      end
   end
 
   # 起点メソッド
