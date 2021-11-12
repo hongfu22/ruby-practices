@@ -4,23 +4,26 @@
 require 'optparse'
 
 opt = OptionParser.new
-option = ""
-opt.on('-a'){option = "a"}
+# オプション格納用ハッシュ
+command_line_arguments = {}
+opt.on('-a') { |option| command_line_arguments[:a] = option }
+# オプション外の引数を取得
 argv = opt.parse!(ARGV)
 # ファイル指定が無ければカレントディレクトリ、あれば指定したパスを取得
 file_path = argv.empty? ? './' : argv[0]
 
 class FileList
   TAB_LENGTH = 8
-  def initialize(file_path, row, option)
+  def initialize(file_path, row, command_line_arguments = {})
     @row = row
-    case option
-    when "a"
-      @files = Dir.glob("*", File::FNM_DOTMATCH, base: file_path)
-    else
-      # パス内の.始まりを除いたファイル、ディレクトリを取得
-      @files = Dir.glob('*', base: file_path)
-    end
+    @files =
+      if command_line_arguments[:a]
+        # -aのオプションが指定されていた場合
+        Dir.glob('*', File::FNM_DOTMATCH, base: file_path)
+      else
+        # パス内の.始まりを除いたファイル、ディレクトリを取得
+        Dir.glob('*', base: file_path)
+      end
   end
 
   # 起点メソッド
@@ -98,7 +101,7 @@ class FileList
 end
 
 if Dir.exist?(file_path)
-  file_list = FileList.new(file_path, 3, option)
+  file_list = FileList.new(file_path, 3, command_line_arguments)
   file_list.produce_file_lists
 elsif File.exist?(file_path)
   puts file_path
