@@ -7,6 +7,7 @@ opt = OptionParser.new
 # オプション格納用ハッシュ
 command_line_arguments = {}
 opt.on('-a') { |option| command_line_arguments[:a] = option }
+opt.on('-r') { |option| command_line_arguments[:r] = option }
 # オプション外の引数を取得
 argv = opt.parse!(ARGV)
 # ファイル指定が無ければカレントディレクトリ、あれば指定したパスを取得
@@ -24,6 +25,7 @@ class FileList
         # パス内の.始まりを除いたファイル、ディレクトリを取得
         Dir.glob('*', base: file_path)
       end
+    @files.reverse! if command_line_arguments[:r]
   end
 
   # 起点メソッド
