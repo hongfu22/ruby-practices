@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
+require 'etc'
 require 'optparse'
 
 opt = OptionParser.new
@@ -8,12 +9,117 @@ opt = OptionParser.new
 command_line_arguments = {}
 opt.on('-a') { |option| command_line_arguments[:a] = option }
 opt.on('-r') { |option| command_line_arguments[:r] = option }
+opt.on('-l') { |option| command_line_arguments[:l] = option }
 # オプション外の引数を取得
 argv = opt.parse!(ARGV)
 # ファイル指定が無ければカレントディレクトリ、あれば指定したパスを取得
 file_path = argv.empty? ? './' : argv[0]
 
+module DetailFileList
+  private
+
+  FILE_TYPE = {
+    'directory' => 'd',
+    'file' => '-',
+    'characterSpecial' => 'c',
+    'fifo' => 'p',
+    'blockSpecial' => 'b',
+    'link' => 'l',
+    'socket' => 's'
+  }.freeze
+
+  def transform_file_list(files, file_path)
+    absolute_path = File.expand_path(file_path) << '/'
+    each_file_detail_info = []
+    # 各列の幅を調整するための配列
+    each_info_longest_length = [0, 0, 0, 0]
+    total_block_size = 0
+    # 最後の周回にlongest系を格納するためindex付き
+    files.each_with_index do |file, f_index|
+      target_file = File.lstat(absolute_path + file)
+      # ファイルタイプ処理
+      file_type = FILE_TYPE[target_file.ftype]
+      # パーミッション処理
+      file_permission = produce_file_permission(target_file)
+      file_detail_info = produce_file_detail_info(target_file)
+      each_file_detail_info << [file_type + file_permission, *file_detail_info, file]
+
+      each_info_longest_length[0] = file_detail_info[0].length + 1 if file_detail_info[0].length >= each_info_longest_length[0]
+      each_info_longest_length[1] = file_detail_info[1].length if file_detail_info[1].length > each_info_longest_length[1]
+      each_info_longest_length[2] = file_detail_info[2].length + 1 if file_detail_info[2].length >= each_info_longest_length[2]
+      each_info_longest_length[3] = file_detail_info[3].length + 1 if file_detail_info[3].length >= each_info_longest_length[3]
+
+      # 合計ブロック数
+      total_block_size += target_file.blocks
+
+      next if files.length > f_index + 1
+
+      puts "total #{total_block_size}"
+    end
+
+    edit_file_detail_format(files, each_file_detail_info, each_info_longest_length)
+    files
+  end
+
+  def produce_file_permission(target_file)
+    # パーミッション処理
+    file_permission = ''
+    file_permission_octal = target_file.mode.to_s(8).chars
+    # 8進数にした時の各ファイルのパーミッションを表す後ろの3文字を抽出しパーミッションを判断
+    file_permission_octal[-3..-1].each do |octal|
+      # 2進数にして真('1')かどうかでパーミッションを判断する
+      # ex) 101 => 'r-x', 011 => '-wx'
+      file_permission_binary = octal.to_i.to_s(2).ljust(3, '0').chars
+      file_permission_binary.each_with_index do |binary, index|
+        if binary != '0'
+          file_permission += 'r' if index.zero?
+          file_permission += 'w' if index == 1
+          file_permission += 'x' if index == 2
+        else
+          file_permission += '-'
+        end
+      end
+    end
+    file_permission = check_unique_permission(target_file, file_permission)
+  end
+
+  def check_unique_permission(target_file, file_permission)
+    # スティッキービットとUID,GIDに関しての判断
+    file_permission[-1] = 't' if target_file.sticky? && file_permission[-1] == 'x'
+    file_permission[-1] = 'T' if target_file.sticky? && file_permission[-1] == '-'
+    file_permission[-7] = 's' if target_file.setuid?
+    file_permission[-4] = 's' if target_file.setgid?
+    file_permission
+  end
+
+  def produce_file_detail_info(target_file)
+    # その他のファイル情報
+    hard_link_num = target_file.nlink.to_s
+    owner = Etc.getpwuid(target_file.uid).name
+    group_owner = Etc.getgrgid(target_file.gid).name
+    byte = target_file.size?.to_s
+    byte = '0' if byte.empty?
+    half_year_ago = Time.new - 24 * 60 * 60 * 180
+    time_stamp = target_file.mtime.strftime('%_m %_d  %_Y') if target_file.mtime < half_year_ago
+    time_stamp = target_file.mtime.strftime('%_m %_d %H:%M') if target_file.mtime >= half_year_ago
+    [hard_link_num, owner, group_owner, byte, time_stamp]
+  end
+
+  def edit_file_detail_format(files, each_file_detail_info, each_info_longest_length)
+    each_file_detail_info.each_with_index do |file_details, file_index|
+      file_details[1] = file_details[1].rjust(each_info_longest_length[0])
+      file_details[2] = file_details[2].rjust(each_info_longest_length[1])
+      file_details[3] = file_details[3].rjust(each_info_longest_length[2])
+      file_details[4] = file_details[4].rjust(each_info_longest_length[3])
+      files[file_index] = file_details.join(' ')
+    end
+    files
+  end
+end
+
 class FileList
+  include DetailFileList
+
   TAB_LENGTH = 8
   def initialize(file_path, row, command_line_arguments = {})
     @row = row
@@ -26,6 +132,7 @@ class FileList
         Dir.glob('*', base: file_path)
       end
     @files.reverse! if command_line_arguments[:r]
+    @files = transform_file_list(@files, file_path) if command_line_arguments[:l]
   end
 
   # 起点メソッド
