@@ -53,7 +53,6 @@ module DetailFileList
       each_file_detail_info << fetch_file_detail_info(target_file).push(file_path)
       each_info_longest_length = check_info_length(each_info_longest_length, each_file_detail_info[0])
     end
-
     edit_file_detail_format(files, each_file_detail_info, each_info_longest_length)
     files
   end
@@ -89,11 +88,18 @@ module DetailFileList
 
   def check_unique_permission(target_file, file_permission)
     # スティッキービットとUID,GIDに関しての判断
-    file_permission[-1] = 't' if target_file.sticky? && file_permission[-1] == 'x'
-    file_permission[-1] = 'T' if target_file.sticky? && file_permission[-1] == '-'
-    file_permission[-7] = 's' if target_file.setuid?
-    file_permission[-4] = 's' if target_file.setgid?
+    file_permission[-1] = edit_unique_permission('t', file_permission[-1]) if target_file.sticky?
+    file_permission[-4] = edit_unique_permission('s', file_permission[-4]) if target_file.setgid?
+    file_permission[-7] = edit_unique_permission('s', file_permission[-7]) if target_file.setuid?
     file_permission
+  end
+
+  def edit_unique_permission(setting_letter, source_permission)
+    if source_permission == '-'
+      setting_letter.upcase
+    else
+      setting_letter
+    end
   end
 
   def produce_file_detail_info(target_file)
@@ -116,8 +122,8 @@ module DetailFileList
 
   def check_info_length(each_info_longest_length, each_file_detail_info)
     each_info_longest_length[0] = each_file_detail_info[1].length + 1 if each_file_detail_info[1].length >= each_info_longest_length[0]
-    each_info_longest_length[1] = each_file_detail_info[2].length if each_file_detail_info[2].length > each_info_longest_length[1]
-    each_info_longest_length[2] = each_file_detail_info[3].length + 1 if each_file_detail_info[3].length >= each_info_longest_length[2]
+    each_info_longest_length[1] = each_file_detail_info[2].length + 1 if each_file_detail_info[2].length >= each_info_longest_length[1]
+    each_info_longest_length[2] = each_file_detail_info[3].length if each_file_detail_info[3].length > each_info_longest_length[2]
     each_info_longest_length[3] = each_file_detail_info[4].length + 1 if each_file_detail_info[4].length >= each_info_longest_length[3]
     each_info_longest_length
   end
@@ -125,12 +131,11 @@ module DetailFileList
   def edit_file_detail_format(files, each_file_detail_info, each_info_longest_length)
     each_file_detail_info.each_with_index do |file_details, file_index|
       file_details[1] = file_details[1].rjust(each_info_longest_length[0])
-      file_details[2] = file_details[2].rjust(each_info_longest_length[1])
-      file_details[3] = file_details[3].rjust(each_info_longest_length[2])
+      file_details[2] = file_details[2].ljust(each_info_longest_length[1])
+      file_details[3] = file_details[3].ljust(each_info_longest_length[2])
       file_details[4] = file_details[4].rjust(each_info_longest_length[3])
       files[file_index] = file_details.join(' ')
     end
-    files
   end
 end
 
