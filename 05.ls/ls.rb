@@ -28,19 +28,19 @@ module DetailFileList
     'socket' => 's'
   }.freeze
 
-  def transform_file_list(files, file_path)
+  def fetch_detailed_file_list(files, file_path)
     absolute_path = File.expand_path(file_path) << '/'
-    file_detail_info = []
+    each_file_detail_info = []
     # 各列の幅を調整するための配列
     each_info_longest_length = [0, 0, 0, 0]
     total_block_size = 0
 
     if Dir.exist?(file_path)
-      # 最後の周回にlongest系を格納するためindex付き
+      # 最後の周回にブロック数を表示するためindex付き
       files.each_with_index do |file, file_index|
         target_file = File.lstat(absolute_path + file)
-        file_detail_info << fetch_file_detail_info(target_file).push(file)
-        each_info_longest_length = check_info_length(each_info_longest_length, file_detail_info[file_index])
+        each_file_detail_info << fetch_file_detail_info(target_file).push(file)
+        each_info_longest_length = check_info_length(each_info_longest_length, each_file_detail_info[file_index])
         # 合計ブロック数
         total_block_size += target_file.blocks
         next if files.length > file_index + 1
@@ -50,11 +50,11 @@ module DetailFileList
     else
       target_file = File.stat(file_path)
       # この後の処理でeachブロックがあるため多重配列にしている
-      file_detail_info << fetch_file_detail_info(target_file).push(file_path)
-      each_info_longest_length = check_info_length(each_info_longest_length, file_detail_info[0])
+      each_file_detail_info << fetch_file_detail_info(target_file).push(file_path)
+      each_info_longest_length = check_info_length(each_info_longest_length, each_file_detail_info[0])
     end
 
-    edit_file_detail_format(files, file_detail_info, each_info_longest_length)
+    edit_file_detail_format(files, each_file_detail_info, each_info_longest_length)
     files
   end
 
@@ -109,11 +109,11 @@ module DetailFileList
     [hard_link_num, owner, group_owner, byte, time_stamp]
   end
 
-  def check_info_length(each_info_longest_length, file_detail_info)
-    each_info_longest_length[0] = file_detail_info[1].length + 1 if file_detail_info[1].length >= each_info_longest_length[0]
-    each_info_longest_length[1] = file_detail_info[2].length if file_detail_info[2].length > each_info_longest_length[1]
-    each_info_longest_length[2] = file_detail_info[3].length + 1 if file_detail_info[3].length >= each_info_longest_length[2]
-    each_info_longest_length[3] = file_detail_info[4].length + 1 if file_detail_info[4].length >= each_info_longest_length[3]
+  def check_info_length(each_info_longest_length, each_file_detail_info)
+    each_info_longest_length[0] = each_file_detail_info[1].length + 1 if each_file_detail_info[1].length >= each_info_longest_length[0]
+    each_info_longest_length[1] = each_file_detail_info[2].length if each_file_detail_info[2].length > each_info_longest_length[1]
+    each_info_longest_length[2] = each_file_detail_info[3].length + 1 if each_file_detail_info[3].length >= each_info_longest_length[2]
+    each_info_longest_length[3] = each_file_detail_info[4].length + 1 if each_file_detail_info[4].length >= each_info_longest_length[3]
     each_info_longest_length
   end
 
@@ -144,7 +144,7 @@ class FileList
         Dir.glob('*', base: file_path)
       end
     @files.reverse! if command_line_arguments[:r]
-    @files = transform_file_list(@files, file_path) if command_line_arguments[:l]
+    @files = fetch_detailed_file_list(@files, file_path) if command_line_arguments[:l]
   end
 
   # 起点メソッド
