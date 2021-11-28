@@ -99,7 +99,12 @@ module DetailFileList
   def produce_file_detail_info(target_file)
     # その他のファイル情報
     hard_link_num = target_file.nlink.to_s
-    owner = Etc.getpwuid(target_file.uid).name
+    owner =
+      begin
+        Etc.getpwuid(target_file.uid).name
+      rescue ArgumentError
+        '201'
+      end
     group_owner = Etc.getgrgid(target_file.gid).name
     byte = target_file.size?.to_s
     byte = '0' if byte.empty?
@@ -145,6 +150,7 @@ class FileList
       end
     @files.reverse! if command_line_arguments[:r]
     @files = fetch_detailed_file_list(@files, file_path) if command_line_arguments[:l]
+    @row = 1 if command_line_arguments[:l]
   end
 
   # 起点メソッド
