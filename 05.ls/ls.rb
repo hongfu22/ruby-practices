@@ -30,35 +30,39 @@ module DetailFileList
 
   def transform_file_list(files, file_path)
     absolute_path = File.expand_path(file_path) << '/'
-    each_file_detail_info = []
+    file_detail_info = []
     # 各列の幅を調整するための配列
     each_info_longest_length = [0, 0, 0, 0]
     total_block_size = 0
-    # 最後の周回にlongest系を格納するためindex付き
-    files.each_with_index do |file, f_index|
-      target_file = File.lstat(absolute_path + file)
-      # ファイルタイプ処理
-      file_type = FILE_TYPE[target_file.ftype]
-      # パーミッション処理
-      file_permission = produce_file_permission(target_file)
-      file_detail_info = produce_file_detail_info(target_file)
-      each_file_detail_info << [file_type + file_permission, *file_detail_info, file]
 
-      each_info_longest_length[0] = file_detail_info[0].length + 1 if file_detail_info[0].length >= each_info_longest_length[0]
-      each_info_longest_length[1] = file_detail_info[1].length if file_detail_info[1].length > each_info_longest_length[1]
-      each_info_longest_length[2] = file_detail_info[2].length + 1 if file_detail_info[2].length >= each_info_longest_length[2]
-      each_info_longest_length[3] = file_detail_info[3].length + 1 if file_detail_info[3].length >= each_info_longest_length[3]
+    if Dir.exist?(file_path)
+      # 最後の周回にlongest系を格納するためindex付き
+      files.each_with_index do |file, file_index|
+        target_file = File.lstat(absolute_path + file)
+        file_detail_info << fetch_file_detail_info(target_file).push(file)
+        each_info_longest_length = check_info_length(each_info_longest_length, file_detail_info[file_index])
+        # 合計ブロック数
+        total_block_size += target_file.blocks
+        next if files.length > file_index + 1
 
-      # 合計ブロック数
-      total_block_size += target_file.blocks
-
-      next if files.length > f_index + 1
-
-      puts "total #{total_block_size}"
+        puts "total #{total_block_size}"
+      end
+    else
+      target_file = File.stat(file_path)
+      # この後の処理でeachブロックがあるため多重配列にしている
+      file_detail_info << fetch_file_detail_info(target_file).push(file_path)
+      each_info_longest_length = check_info_length(each_info_longest_length, file_detail_info[0])
     end
 
-    edit_file_detail_format(files, each_file_detail_info, each_info_longest_length)
+    edit_file_detail_format(files, file_detail_info, each_info_longest_length)
     files
+  end
+
+  def fetch_file_detail_info(target_file)
+    file_type = FILE_TYPE[target_file.ftype]
+    file_permission = produce_file_permission(target_file)
+    file_detail_info = produce_file_detail_info(target_file)
+    [file_type + file_permission, *file_detail_info]
   end
 
   def produce_file_permission(target_file)
@@ -103,6 +107,14 @@ module DetailFileList
     time_stamp = target_file.mtime.strftime('%_m %_d  %_Y') if target_file.mtime < half_year_ago
     time_stamp = target_file.mtime.strftime('%_m %_d %H:%M') if target_file.mtime >= half_year_ago
     [hard_link_num, owner, group_owner, byte, time_stamp]
+  end
+
+  def check_info_length(each_info_longest_length, file_detail_info)
+    each_info_longest_length[0] = file_detail_info[1].length + 1 if file_detail_info[1].length >= each_info_longest_length[0]
+    each_info_longest_length[1] = file_detail_info[2].length if file_detail_info[2].length > each_info_longest_length[1]
+    each_info_longest_length[2] = file_detail_info[3].length + 1 if file_detail_info[3].length >= each_info_longest_length[2]
+    each_info_longest_length[3] = file_detail_info[4].length + 1 if file_detail_info[4].length >= each_info_longest_length[3]
+    each_info_longest_length
   end
 
   def edit_file_detail_format(files, each_file_detail_info, each_info_longest_length)
@@ -213,7 +225,13 @@ if Dir.exist?(file_path)
   file_list = FileList.new(file_path, 3, command_line_arguments)
   file_list.produce_file_lists
 elsif File.exist?(file_path)
-  puts file_path
+  # ファイル単体指定時にも詳細表示する
+  if command_line_arguments[:l]
+    file_list = FileList.new(file_path, 1, command_line_arguments)
+    file_list.produce_file_lists
+  else
+    puts file_path
+  end
 else
   puts format('ls.rb: %s: No such file or directory', file_path)
 end
