@@ -29,32 +29,17 @@ module DetailFileList
   }.freeze
 
   def fetch_detailed_file_list(files, file_path)
-    absolute_path = File.expand_path(file_path) << '/'
+    absolute_path = Dir.exist?(file_path) ? File.expand_path(file_path) << '/' : ''
+    files << file_path unless Dir.exist?(file_path)
     each_file_detail_info = []
     # 各列の幅を調整するための配列
     each_info_longest_length = [0, 0, 0, 0]
-    total_block_size = 0
-
-    if Dir.exist?(file_path)
-      # 最後の周回にブロック数を表示するためindex付き
-      files.each_with_index do |file, file_index|
-        target_file = File.lstat(absolute_path + file)
-        each_file_detail_info << fetch_file_detail_info(target_file).push(file)
-        each_info_longest_length = check_info_length(each_info_longest_length, each_file_detail_info[file_index])
-        # 合計ブロック数
-        total_block_size += target_file.blocks
-        next if files.length > file_index + 1
-
-        puts "total #{total_block_size}"
-      end
-    else
-      target_file = File.stat(file_path)
-      # この後の処理でeachブロックがあるため多重配列にしている
-      each_file_detail_info << fetch_file_detail_info(target_file).push(file_path)
-      each_info_longest_length = check_info_length(each_info_longest_length, each_file_detail_info[0])
+    files.each_with_index do |file, file_index|
+      target_file = File.lstat(absolute_path + file)
+      each_file_detail_info << fetch_file_detail_info(target_file).push(file)
+      each_info_longest_length = check_info_length(each_info_longest_length, each_file_detail_info[file_index])
     end
-    edit_file_detail_format(files, each_file_detail_info, each_info_longest_length)
-    files
+    edit_file_detail_format(each_file_detail_info, each_info_longest_length)
   end
 
   def fetch_file_detail_info(target_file)
@@ -95,11 +80,9 @@ module DetailFileList
   end
 
   def edit_unique_permission(setting_letter, source_permission)
-    if source_permission == '-'
-      setting_letter.upcase
-    else
-      setting_letter
-    end
+    return setting_letter.upcase if source_permission == '-'
+
+    setting_letter
   end
 
   def produce_file_detail_info(target_file)
@@ -128,14 +111,26 @@ module DetailFileList
     each_info_longest_length
   end
 
-  def edit_file_detail_format(files, each_file_detail_info, each_info_longest_length)
-    each_file_detail_info.each_with_index do |file_details, file_index|
-      file_details[1] = file_details[1].rjust(each_info_longest_length[0])
-      file_details[2] = file_details[2].ljust(each_info_longest_length[1])
-      file_details[3] = file_details[3].ljust(each_info_longest_length[2])
-      file_details[4] = file_details[4].rjust(each_info_longest_length[3])
-      files[file_index] = file_details.join(' ')
+  def edit_file_detail_format(each_file_detail_info, each_info_longest_length)
+    edited_file_detail_info = []
+    each_file_detail_info.each do |file_detail_info|
+      file_detail_info[1] = file_detail_info[1].rjust(each_info_longest_length[0])
+      file_detail_info[2] = file_detail_info[2].ljust(each_info_longest_length[1])
+      file_detail_info[3] = file_detail_info[3].ljust(each_info_longest_length[2])
+      file_detail_info[4] = file_detail_info[4].rjust(each_info_longest_length[3])
+      edited_file_detail_info << file_detail_info.join(' ')
     end
+    edited_file_detail_info
+  end
+
+  def calculate_block_size(files, file_path)
+    absolute_path = File.expand_path(file_path) << '/'
+    total_block_size = 0
+    files.each do |file|
+      target_file = File.lstat(absolute_path + file)
+      total_block_size += target_file.blocks
+    end
+    total_block_size
   end
 end
 
@@ -154,8 +149,11 @@ class FileList
         Dir.glob('*', base: file_path)
       end
     @files.reverse! if command_line_arguments[:r]
-    @files = fetch_detailed_file_list(@files, file_path) if command_line_arguments[:l]
-    @row = 1 if command_line_arguments[:l]
+    return unless command_line_arguments[:l]
+
+    puts "total #{calculate_block_size(@files, file_path)}" if Dir.exist?(file_path)
+    @files = fetch_detailed_file_list(@files, file_path)
+    @row = 1
   end
 
   # 起点メソッド
