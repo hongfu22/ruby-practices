@@ -112,25 +112,21 @@ module DetailFileList
   end
 
   def edit_file_detail_format(each_file_detail_info, each_info_longest_length)
-    edited_file_detail_info = []
-    each_file_detail_info.each do |file_detail_info|
+    each_file_detail_info.map do |file_detail_info|
       file_detail_info[1] = file_detail_info[1].rjust(each_info_longest_length[0])
       file_detail_info[2] = file_detail_info[2].ljust(each_info_longest_length[1])
       file_detail_info[3] = file_detail_info[3].ljust(each_info_longest_length[2])
       file_detail_info[4] = file_detail_info[4].rjust(each_info_longest_length[3])
-      edited_file_detail_info << file_detail_info.join(' ')
+      file_detail_info.join(' ')
     end
-    edited_file_detail_info
   end
 
   def calculate_block_size(files, file_path)
     absolute_path = File.expand_path(file_path) << '/'
-    total_block_size = 0
-    files.each do |file|
+    files.map do |file|
       target_file = File.lstat(absolute_path + file)
-      total_block_size += target_file.blocks
+      target_file.blocks
     end
-    total_block_size
   end
 end
 
@@ -151,7 +147,7 @@ class FileList
     @files.reverse! if command_line_arguments[:r]
     return unless command_line_arguments[:l]
 
-    puts "total #{calculate_block_size(@files, file_path)}" if Dir.exist?(file_path)
+    puts "total #{calculate_block_size(@files, file_path).sum}" if Dir.exist?(file_path)
     @files = fetch_detailed_file_list(@files, file_path)
     @row = 1
   end
