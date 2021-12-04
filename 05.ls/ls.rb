@@ -123,7 +123,7 @@ module DetailFileList
 
   def calculate_block_size(files, file_path)
     absolute_path = File.expand_path(file_path) << '/'
-    files.map do |file|
+    files.sum do |file|
       target_file = File.lstat(absolute_path + file)
       target_file.blocks
     end
@@ -147,7 +147,7 @@ class FileList
     @files.reverse! if command_line_arguments[:r]
     return unless command_line_arguments[:l]
 
-    puts "total #{calculate_block_size(@files, file_path).sum}" if Dir.exist?(file_path)
+    puts "total #{calculate_block_size(@files, file_path)}" if Dir.exist?(file_path)
     @files = fetch_detailed_file_list(@files, file_path)
     @row = 1
   end
