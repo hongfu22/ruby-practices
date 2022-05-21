@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-require 'etc'
 require 'optparse'
 
 def produce_each_size_info(target_content, target_content_size, file_name = '')
@@ -82,22 +81,26 @@ count_row_num = 3
 if argv.empty?
   target_content = readlines
   target_content_size = target_content.join('').size
-  each_content_count << produce_each_size_info(target_content, target_content_size)
+  each_content_count <<
+    if command_line_arguments[:l]
+      produce_line_number(target_content)
+    else
+      produce_each_size_info(target_content, target_content_size)
+    end
 else
   argv.each do |file_name|
-    file =
-      begin
-        File.open(file_name, 'r')
-      rescue Errno::EISDIR
-        puts format("wc: #{file_name}s: read: Is a directory", file_name)
-        next
-      rescue Errno::ENOENT
-        puts format("wc: #{file_name}s: open: No such file or directory", file_name)
-        next
+    begin
+      File.open(file_name, 'r') do |file|
+        target_content = file.readlines
+        target_content_size = file.size
       end
-    target_content = file.readlines
-    target_content_size = file.size
-    file.close
+    rescue Errno::EISDIR
+      puts format("wc: #{file_name}s: read: Is a directory", file_name)
+      next
+    rescue Errno::ENOENT
+      puts format("wc: #{file_name}s: open: No such file or directory", file_name)
+      next
+    end
     if command_line_arguments[:l]
       count_row_num = 1
       each_content_count << produce_line_number(target_content, file_name)
@@ -109,13 +112,8 @@ else
 end
 
 # ここで纏めてレイアウトを調整
-each_content_count =
-  if command_line_arguments[:l]
-    adjust_line_content_alignment(each_content_count)
-  else
-    adjust_content_alignment(each_content_count)
-  end
-
-each_content_count.each do |content_count|
-  puts content_count
+if command_line_arguments[:l]
+  puts adjust_line_content_alignment(each_content_count)
+else
+  puts adjust_content_alignment(each_content_count)
 end
