@@ -4,59 +4,60 @@ require './frame'
 require './shot'
 
 class Game
-  def initialize(shots)
-    # 後の処理で各投球を2つずつに分け1フレームとして扱いたいため、最後のフレーム以外のXの後に0を挿入
-    shots = zero_insert(shots)
-    # 数字にされた各投球を2つずつ配列にし、二次元配列としてまとめる。
-    frames = transform_str_to_int(shots).each_slice(2).to_a
-    # 2つずつに分けると10フレーム目が3投していた場合あまりの配列ができてしまうため、10投目の配列と結合する。
-    if frames[-1].count == 1
-      frames[-2].push(*frames[-1])
-      frames.delete_at(-1)
-    end
-    @game = frames.map do |frame|
+  def initialize(frames)
+    @frames = create_frames(frames)
+  end
+
+  def create_frames(frames)
+    frames = insert_zero_to_strike_frame(frames).each_slice(2).to_a
+    frames = combine_third_shot_of_final_frame(frames) if frames[-1].count == 1
+    frames.map do |frame|
       Frame.new(*frame)
     end
   end
 
-  # 後の処理で各投球を2つずつに分け1フレームとして扱いたいため、最後のフレーム以外のXの後に0を挿入
-  def zero_insert(frames)
-    frames.each_with_index do |each_shot, throw_index|
-      frames.insert(throw_index + 1, 0) if each_shot == 'X' && throw_index <= 17
-    end
+  # ラストゲームの3投目があった場合に要素1つの配列ができてしまうため、10ゲーム目の2投と結合する
+  def combine_third_shot_of_final_frame(frames)
+    third_shot = frames.pop
+    two_shots = frames.pop
+    last_game = two_shots + third_shot
+    frames.push(last_game)
   end
 
-  def transform_str_to_int(frames)
-    frames.map do |each_shot|
-      each_shot = 10 if each_shot == 'X'
-      each_shot.to_i
+  # 最後のフレーム以外(17投球目以前)のXの後に0を挿入
+  def insert_zero_to_strike_frame(frames)
+    frames.each_with_index do |each_shot, shot_index|
+      frames.insert(shot_index + 1, 0) if each_shot == 'X' && shot_index <= 17
     end
   end
 
   def score
     total_score = 0
-    @game.each_with_index do |frame, frame_index|
+    @frames.each_with_index do |frame, frame_index|
+      next if frame_index == 9
+
       total_score += frame.score
-      if frame.first_shot.score == 10 && frame_index < 9
-        total_score += strike(frame_index + 1)
-      elsif frame.score == 10 && frame_index < 9
-        total_score += spare(frame_index + 1)
+      if frame.strike?
+        total_score += calc_strike_bonus(frame_index + 1)
+      elsif frame.spare?
+        total_score += calc_spare_bonus(frame_index + 1)
       end
     end
-    total_score
+
+    total_score += @frames[-1].score_last_game_points
   end
 
-  def strike(next_frame_index)
-    if @game[next_frame_index].first_shot.score == 10 && next_frame_index < 9
+  def calc_strike_bonus(next_frame_index)
+    # 次の次のフレームの1投目を足すか判断する処理なので、次が9フレーム目の場合は除外する。
+    if @frames[next_frame_index].strike? && next_frame_index < 9
       # ストライクした次のフレームがストライクだった場合、さらにその次のフレームの1投目のスコアを足す
-      10 + @game[next_frame_index + 1].first_shot.score
+      10 + @frames[next_frame_index + 1].first_shot.score
     else
-      # ラストフレームはサードショットが計算されてしまうため、frame.scoreを使わずにそれぞれの投球のスコアを足す
-      @game[next_frame_index].first_shot.score + @game[next_frame_index].second_shot.score
+      @frames[next_frame_index].score
     end
   end
 
-  def spare(next_frame_index)
-    @game[next_frame_index].first_shot.score
+  def calc_spare_bonus(next_frame_index)
+    @frames[next_frame_index].first_shot.score
   end
 end
