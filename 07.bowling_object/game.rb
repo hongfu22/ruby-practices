@@ -9,7 +9,8 @@ class Game
   end
 
   def create_frames(frames)
-    frames = insert_zero_to_strike_frame(frames).each_slice(2).to_a
+    frames = insert_zero_to_strike_frame(frames)
+    frames = divide_into_each_frame(frames)
     frames = combine_third_shot_of_final_frame(frames) if frames[-1].count == 1
     frames.map do |frame|
       Frame.new(*frame)
@@ -22,6 +23,11 @@ class Game
     two_shots = frames.pop
     last_game = two_shots + third_shot
     frames.push(last_game)
+  end
+
+  
+  def divide_into_each_frame(frames)
+    frames.each_slice(2).to_a
   end
 
   # 最後のフレーム以外(17投球目以前)のXの後に0を挿入
@@ -37,9 +43,9 @@ class Game
       next if frame_index == 9
 
       total_score += frame.score
-      if frame.strike?
+      if frame.strike_shot?
         total_score += calc_strike_bonus(frame_index + 1)
-      elsif frame.spare?
+      elsif frame.spare_shots?
         total_score += calc_spare_bonus(frame_index + 1)
       end
     end
@@ -49,7 +55,7 @@ class Game
 
   def calc_strike_bonus(next_frame_index)
     # 次の次のフレームの1投目を足すか判断する処理なので、次が9フレーム目の場合は除外する。
-    if @frames[next_frame_index].strike? && next_frame_index < 9
+    if @frames[next_frame_index].strike_shot? && next_frame_index < 9
       # ストライクした次のフレームがストライクだった場合、さらにその次のフレームの1投目のスコアを足す
       10 + @frames[next_frame_index + 1].first_shot.score
     else

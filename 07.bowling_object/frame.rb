@@ -19,11 +19,11 @@ class Frame
     [first_shot.score, second_shot.score, third_shot.score].sum
   end
 
-  def strike?
+  def strike_shot?
     first_shot.score == 10
   end
 
-  def spare?
+  def spare_shots?
     score == 10
   end
 
