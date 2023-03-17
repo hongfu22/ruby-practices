@@ -43,9 +43,9 @@ class Game
       next if frame_index == 9
 
       total_score += frame.score
-      if frame.strike_shot?
+      if frame.check_strike_shot?
         total_score += calc_strike_bonus(frame_index + 1)
-      elsif frame.spare_shots?
+      elsif frame.check_spare_shots?
         total_score += calc_spare_bonus(frame_index + 1)
       end
     end
@@ -55,7 +55,7 @@ class Game
 
   def calc_strike_bonus(next_frame_index)
     # 次の次のフレームの1投目を足すか判断する処理なので、次が9フレーム目の場合は除外する。
-    if @frames[next_frame_index].strike_shot? && next_frame_index < 9
+    if @frames[next_frame_index].check_strike_shot? && next_frame_index < 9
       # ストライクした次のフレームがストライクだった場合、さらにその次のフレームの1投目のスコアを足す
       10 + @frames[next_frame_index + 1].first_shot.score
     else
