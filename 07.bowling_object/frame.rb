@@ -26,8 +26,4 @@ class Frame
   def spare?
     score == 10
   end
-
-  def add_last_shot_of_last_game
-    third_shot.score
-  end
 end

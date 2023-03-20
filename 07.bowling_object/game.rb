@@ -20,7 +20,7 @@ class Game
         each_frame << Frame.new(*two_shots)
       elsif shots_i == 9
         # 18は19投目にあたり最後のフレームの1投目になる。なので19投目から最後の1投で最終フレームを完成させる。
-        each_frame << Frame.new(*shots[18..-1])
+        each_frame << Frame.new(*shots[18..])
       end
     end
     each_frame
