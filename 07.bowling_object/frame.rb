@@ -15,15 +15,15 @@ class Frame
     [first_shot.score, second_shot.score].sum
   end
 
-  def score_last_game_points
+  def score_last_frame_points
     [first_shot.score, second_shot.score, third_shot.score].sum
   end
 
-  def check_strike_shot?
+  def strike?
     first_shot.score == 10
   end
 
-  def check_spare_shots?
+  def spare?
     score == 10
   end
 
