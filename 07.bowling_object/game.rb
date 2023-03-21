@@ -15,10 +15,10 @@ class Game
 
   def transform_shots_to_frames(shots)
     each_frame = []
-    shots.each_slice(2).map.with_index do |two_shots, shots_i|
-      if shots_i < 9
-        each_frame << Frame.new(*two_shots)
-      elsif shots_i == 9
+    shots.each_slice(2).map.with_index do |pair_of_shots, frame_i|
+      if frame_i < 9
+        each_frame << Frame.new(*pair_of_shots)
+      elsif frame_i == 9
         # 18は19投目にあたり最後のフレームの1投目になる。なので19投目から最後の1投で最終フレームを完成させる。
         each_frame << Frame.new(*shots[18..])
       end
