@@ -2,6 +2,6 @@
 
 require './game'
 
-scores = ARGV[0].split(',')
-game = Game.new(scores)
+marks = ARGV[0].split(',')
+game = Game.new(marks)
 puts game.score

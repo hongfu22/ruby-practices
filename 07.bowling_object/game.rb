@@ -4,32 +4,32 @@ require './frame'
 require './shot'
 
 class Game
-  def initialize(shots)
-    @frames = create_frames(shots)
+  def initialize(marks)
+    @frames = create_frames(marks)
   end
 
-  def create_frames(shots)
-    shots = insert_zero_after_strike_shot(shots)
-    transform_shots_to_frames(shots)
+  def create_frames(marks)
+    marks = insert_zero_after_strike_mark(marks)
+    transform_marks_to_frames(marks)
   end
 
-  def transform_shots_to_frames(shots)
+  def transform_marks_to_frames(marks)
     each_frame = []
-    shots.each_slice(2).map.with_index do |pair_of_shots, frame_i|
+    marks.each_slice(2).map.with_index do |pair_of_marks, frame_i|
       if frame_i < 9
-        each_frame << Frame.new(*pair_of_shots)
+        each_frame << Frame.new(*pair_of_marks)
       elsif frame_i == 9
         # 18は19投目にあたり最後のフレームの1投目になる。なので19投目から最後の1投で最終フレームを完成させる。
-        each_frame << Frame.new(*shots[18..])
+        each_frame << Frame.new(*marks[18..])
       end
     end
     each_frame
   end
 
   # 最後のフレーム以外(17投球目以前)のXの後に0を挿入
-  def insert_zero_after_strike_shot(shots)
-    shots.each_with_index do |shot, shot_i|
-      shots.insert(shot_i + 1, '0') if shot == 'X' && shot_i <= 17
+  def insert_zero_after_strike_mark(marks)
+    marks.each_with_index do |mark, mark_i|
+      marks.insert(mark_i + 1, '0') if mark == 'X' && mark_i <= 17
     end
   end
 
