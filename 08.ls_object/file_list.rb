@@ -15,17 +15,18 @@ class FileList
       else
         Dir.glob('*', base: file_path)
       end
+    @file_list.insert(1, '..') if options['a']
     @file_list.reverse! if @options['r']
   end
 
   def produce_file_lists(row_len = @row_len)
-    return nil if @file_list.size.zero?
+    return nil if @file_list.length.zero?
 
     # 列数の指定が1の場合はそのままファイルの配列を出力
-    return output_file_list(@file_list) if row_len == 1
+    return output_file_list if row_len == 1
 
     # 行数
-    col_num = (@file_list.size / row_len.to_f).ceil
+    col_num = (@file_list.length / row_len.to_f).ceil
     # ファイルパスの最長の長さを格納、後にこの長さにパスの長さを合わせる
     max_length = cal_longest_file_name(col_num)
     # １行分を連結した幅がコマンドラインの幅よりも大きい場合は列数を少なくして再度関数呼び出し
@@ -73,7 +74,7 @@ class FileList
   # 日本語を2文字としてカウントする関数
   def measure_name_width(name)
     # ファイル名のサイズ（全て半角）と日本語の全角で出る余分な半角分を足してパスの長さとする
-    name.size + name.chars.count { |letter| !letter.ascii_only? }
+    name.length + name.chars.count { |letter| !letter.ascii_only? }
   end
 
   def inspect_column_width?(max_length)

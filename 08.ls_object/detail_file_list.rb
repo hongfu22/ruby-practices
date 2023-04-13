@@ -54,7 +54,7 @@ class DetailFileList < FileList
         [
           file[0] == 'f' ? '-' : file[0],
           file[1],
-          file[2].rjust(each_info_longest_length[0]),
+          file[2].rjust(each_info_longest_length[0] + 1),
           file[3].ljust(each_info_longest_length[1] + 1),
           file[4].ljust(each_info_longest_length[2] + 1),
           file[5].rjust(each_info_longest_length[3]),
@@ -73,7 +73,6 @@ class DetailFileList < FileList
 
   def output_file_list
     format = "%s%s %s %s %s %s %s %s\n"
-
     # ファイル情報の表示
     @file_list.each { |file| printf(format, *file) }
   end
