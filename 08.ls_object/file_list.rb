@@ -6,7 +6,7 @@ class FileList
 
   def initialize(target_path, options)
     @row_len = 3
-    @original_target = target_path
+    @target_path = target_path
     @file_list = options['a'] ? Dir.glob('*', File::FNM_DOTMATCH, base: target_path) : Dir.glob('*', base: target_path)
     @file_list.insert(1, '..') if options['a'] && Dir.exist?(target_path)
     @file_list.reverse! if options['r']
@@ -14,8 +14,10 @@ class FileList
   end
 
   def produce_file_lists(row_len = @row_len)
-    return puts format('ls.rb: %s: No such file or directory', @original_target) unless File.exist?(@original_target)
-
+    unless File.exist?(@target_path)
+      puts format('ls.rb: %s: No such file or directory', @target_path)
+      return
+    end
     return output_file_list(@file_list) if row_len == 1 || @file_list.empty?
 
     col_num = (@file_list.length / row_len.to_f).ceil
