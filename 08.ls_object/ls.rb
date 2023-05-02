@@ -7,11 +7,10 @@ require_relative './detail_file_list'
 options = ARGV.getopts('a', 'l', 'r')
 target_path = ARGV.empty? ? '.' : ARGV[0]
 
-file_list =
-  if options['l']
-    DetailFileList.new(target_path, options)
-  else
-    FileList.new(target_path, options)
-  end
-
-file_list.produce_file_lists
+if options['l']
+  file_list = DetailedlFileInfo.new(target_path, options)
+  file_list.produce_info_lists
+else
+  file_list = FileList.new(target_path, options)
+  file_list.produce_file_lists
+end

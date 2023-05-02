@@ -2,90 +2,90 @@
 
 require 'etc'
 
-class DetailFileList
+class DetailedlFileInfo
   def initialize(target_path, options)
-    @file_list = options['a'] ? Dir.glob('*', File::FNM_DOTMATCH, base: target_path) : Dir.glob('*', base: target_path)
-    @original_target = target_path
+    @target_list = options['a'] ? Dir.glob('*', File::FNM_DOTMATCH, base: target_path) : Dir.glob('*', base: target_path)
+    @original_target_path = target_path
     @target_path = Dir.exist?(target_path) ? File.expand_path(target_path) << '/' : ''
     @block_size = calc_block_size if Dir.exist?(target_path)
-    @file_list.insert(1, '..') if options['a'] && Dir.exist?(target_path)
-    @file_list.reverse! if options['r']
-    @file_list << target_path if FileTest.file?(target_path)
+    @target_list.insert(1, '..') if options['a'] && Dir.exist?(target_path)
+    @target_list.reverse! if options['r']
+    @target_list << target_path if FileTest.file?(target_path)
   end
 
-  def produce_file_lists
-    return puts format('ls.rb: %s: No such file or directory', @original_target) unless File.exist?(@original_target)
+  def produce_info_lists
+    return puts format('ls.rb: %s: No such file or directory', @original_target_path) unless File.exist?(@original_target_path)
 
-    informed_file_list = produce_file_info
-    each_info_longest_length = check_each_info_length(informed_file_list)
-    edited_file_list = edit_output_format(informed_file_list, each_info_longest_length)
-    output_file_list(edited_file_list)
+    informed_target_list = produce_target_info
+    each_info_longest_length = check_each_info_length(informed_target_list)
+    edited_target_list = edit_output_format(informed_target_list, each_info_longest_length)
+    output_info_lists(edited_target_list)
   end
 
   private
 
-  def produce_file_info
+  def produce_target_info
     half_year_ago = Time.new - 24 * 60 * 60 * 180
-    @file_list.map do |file|
-      target_file = @target_path + file
-      file_created_time = File.mtime(target_file)
-      file_info = File.stat(target_file)
+    @target_list.map do |target|
+      target_obj = @target_path + target
+      target_created_time = File.mtime(target_obj)
+      target_info = File.stat(target_obj)
       {
-        file_type: File.ftype(target_file)[0],
-        file_permission: transform_permission(file_info.mode.to_s(8)[-3..]),
-        nlink: file_info.nlink.to_s,
-        file_user_name: Etc.getpwuid(file_info.uid).name,
-        file_group_name: Etc.getgrgid(file_info.gid).name,
-        file_size: File.size(target_file).to_s,
-        created_time: file_created_time >= half_year_ago ? file_created_time.strftime('%_m %_d %H:%M') : file_created_time.strftime('%_m %_d  %_Y'),
-        basename: File.basename(target_file)
+        target_type: File.ftype(target_obj)[0],
+        target_permission: transform_permission(target_info.mode.to_s(8)[-3..]),
+        nlink: target_info.nlink.to_s,
+        target_user_name: Etc.getpwuid(target_info.uid).name,
+        target_group_name: Etc.getgrgid(target_info.gid).name,
+        target_size: File.size(target_obj).to_s,
+        created_time: target_created_time >= half_year_ago ? target_created_time.strftime('%_m %_d %H:%M') : target_created_time.strftime('%_m %_d  %_Y'),
+        basename: File.basename(target_obj)
       }
     end
   end
 
-  def check_each_info_length(informed_file_list)
+  def check_each_info_length(informed_target_list)
     each_longest_length = {
       nlink_len: 0,
       user_name_len: 0,
       group_name_len: 0,
-      file_size_len: 0
+      target_size_len: 0
     }
-    informed_file_list.each do |file_info|
-      each_longest_length[:nlink_len] = file_info[:nlink].length if each_longest_length[:nlink_len] < file_info[:nlink].length
-      each_longest_length[:user_name_len] = file_info[:file_user_name].length if each_longest_length[:user_name_len] < file_info[:file_user_name].length
-      each_longest_length[:group_name_len] = file_info[:file_group_name].length if each_longest_length[:group_name_len] < file_info[:file_group_name].length
-      each_longest_length[:file_size_len] = file_info[:file_size].length if each_longest_length[:file_size_len] < file_info[:file_size].length
+    informed_target_list.each do |target_info|
+      each_longest_length[:nlink_len] = target_info[:nlink].length if each_longest_length[:nlink_len] < target_info[:nlink].length
+      each_longest_length[:user_name_len] = target_info[:target_user_name].length if each_longest_length[:user_name_len] < target_info[:target_user_name].length
+      each_longest_length[:group_name_len] = target_info[:target_group_name].length if each_longest_length[:group_name_len] < target_info[:target_group_name].length
+      each_longest_length[:target_size_len] = target_info[:target_size].length if each_longest_length[:target_size_len] < target_info[:target_size].length
     end
     each_longest_length
   end
 
-  def edit_output_format(informed_file_list, each_info_longest_length)
-    edited_file_list = informed_file_list.map do |informed_file|
+  def edit_output_format(informed_target_list, each_info_longest_length)
+    edited_target_list = informed_target_list.map do |informed_target|
       [
-        informed_file[:file_type] == 'f' ? '-' : informed_file[:file_type],
-        informed_file[:file_permission],
-        informed_file[:nlink].rjust(each_info_longest_length[:nlink_len] + 1),
-        informed_file[:file_user_name].ljust(each_info_longest_length[:user_name_len] + 1),
-        informed_file[:file_group_name].ljust(each_info_longest_length[:group_name_len] + 1),
-        informed_file[:file_size].rjust(each_info_longest_length[:file_size_len]),
-        informed_file[:created_time],
-        informed_file[:basename]
+        informed_target[:target_type] == 'f' ? '-' : informed_target[:target_type],
+        informed_target[:target_permission],
+        informed_target[:nlink].rjust(each_info_longest_length[:nlink_len] + 1),
+        informed_target[:target_user_name].ljust(each_info_longest_length[:user_name_len] + 1),
+        informed_target[:target_group_name].ljust(each_info_longest_length[:group_name_len] + 1),
+        informed_target[:target_size].rjust(each_info_longest_length[:target_size_len]),
+        informed_target[:created_time],
+        informed_target[:basename]
       ]
     end
-    edited_file_list[0][7] = @original_target unless edited_file_list.count > 1 || Dir.exist?(@target_path)
-    edited_file_list
+    edited_target_list[0][7] = @original_target unless edited_target_list.count > 1 || Dir.exist?(@target_path)
+    edited_target_list
   end
 
   def calc_block_size
-    @file_list.sum do |file|
-      File::Stat.new(@target_path + file).blocks
+    @target_list.sum do |target|
+      File::Stat.new(@target_path + target).blocks
     end
   end
 
-  def output_file_list(edited_file_list)
+  def output_info_lists(edited_target_list)
     puts "total #{@block_size}" if Dir.exist?(@target_path)
     format = "%s%s %s %s %s %s %s %s\n"
-    edited_file_list.each { |file| printf(format, *file) }
+    edited_target_list.each { |target| printf(format, *target) }
   end
 
   def transform_permission(permission_nums)
