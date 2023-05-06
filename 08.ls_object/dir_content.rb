@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require_relative './content_producer'
 
 class DirContent
@@ -21,7 +22,7 @@ class DirContent
 
     row_num = (@target_contents.length / col_num.to_f).ceil
     max_length = cal_longest_file_name
-    return produce_dir_contents(@col_num -= 1) if is_too_long?(max_length)
+    return produce_dir_contents(@col_num -= 1) if too_long?(max_length)
 
     combined_target_contents = produce_each_row(row_num, max_length)
     output_dir_contents(combined_target_contents)
@@ -32,11 +33,11 @@ class DirContent
   def produce_each_row(row_num, max_length)
     combined_target_contents = []
     row_num.times do |row|
-      each_rows = []
+      each_row = []
       row.step(@target_contents.length, row_num) do |target_num|
-        each_rows << format("%-#{max_length}s", @target_contents[target_num]) unless @target_contents[target_num].nil?
+        each_row << format("%-#{max_length}s", @target_contents[target_num]) unless @target_contents[target_num].nil?
       end
-      combined_target_contents << each_rows.join("\t")
+      combined_target_contents << each_row.join("\t")
     end
     combined_target_contents
   end
@@ -45,7 +46,7 @@ class DirContent
     @target_contents.map(&:length).max
   end
 
-  def is_too_long?(max_length)
+  def too_long?(max_length)
     tab_width = TAB_LENGTH - max_length % TAB_LENGTH
     row_width = tab_width * (@col_num - 1) + max_length * @col_num
     row_width >= `tput cols`.to_i
