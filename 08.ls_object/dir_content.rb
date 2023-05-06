@@ -13,7 +13,7 @@ class DirContent
   end
 
   def produce_dir_contents(col_num = @col_num)
-    unless File.exist?(@dir_path)
+    if @target_contents.nil?
       puts format('ls.rb: %s: No such file or directory', @dir_path)
       return
     end

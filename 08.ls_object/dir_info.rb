@@ -12,7 +12,7 @@ class DirInfo
   end
 
   def produce_dir_info
-    unless File.exist?(@original_dir_path)
+    if @target_contents.nil?
       puts format('ls.rb: %s: No such file or directory', @original_dir_path)
       return
     end
