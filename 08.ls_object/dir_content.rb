@@ -25,22 +25,22 @@ class DirContent
       return
     end
 
-    row_num = (@target_contents.length / col_num.to_f).ceil
-    max_length = cal_longest_file_name
+    row_count = (@target_contents.length / col_num.to_f).ceil
+    max_length = calculate_longest_file_name_length
     if is_too_wide_row?(max_length)
       produce_dir_contents(@col_num -= 1)
       return
     end
 
-    rows = produce_each_row(row_num, max_length)
+    rows = produce_each_row(row_count, max_length)
     output_dir_contents(rows)
   end
 
   private
 
-  def produce_each_row(row_num, max_length)
+  def produce_each_row(row_count, max_length)
     rows = []
-    row_num.times do |row|
+    row_count.times do |row|
       each_row = []
       row.step(@target_contents.length, row_num) do |target_num|
         each_row << format("%-#{max_length}s", @target_contents[target_num]) unless @target_contents[target_num].nil?
@@ -50,7 +50,7 @@ class DirContent
     rows
   end
 
-  def cal_longest_file_name
+  def calculate_longest_file_name_length
     @target_contents.map(&:length).max
   end
 
