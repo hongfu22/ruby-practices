@@ -13,14 +13,14 @@ class ContentInfo
     @dir_path = Dir.exist?(dir_path) ? "#{File.expand_path(dir_path)}/" : ''
   end
 
-  def produce_dir_info
+  def produce_content_info
     if @target_contents.nil?
       puts format('ls.rb: %s: No such file or directory', @original_dir_path)
       return
     end
 
     target_info = produce_target_info
-    each_info_length = fetch_each_info_length(target_info)
+    each_info_length = calculate_longest_info_length(target_info)
     formatted_target_info = format_target_info(target_info, each_info_length)
     output_info_lists(formatted_target_info)
   end
@@ -29,8 +29,8 @@ class ContentInfo
 
   def produce_target_info
     half_year_ago = Time.new - 24 * 60 * 60 * 180
-    @target_contents.map do |t_content|
-      target_content = @dir_path + t_content
+    @target_contents.map do |target_content|
+      target_content = @dir_path + target_content
       target_info = File.stat(target_content)
       @block_size += target_info.blocks
       {
@@ -46,23 +46,23 @@ class ContentInfo
     end
   end
 
-  def fetch_each_info_length(target_info)
+  def calculate_longest_info_length(target_info)
     {
-      nlink_len: target_info.map { |t_info| t_info[:nlink].length }.max,
-      user_name_len: target_info.map { |t_info| t_info[:target_user_name].length }.max,
-      group_name_len: target_info.map { |t_info| t_info[:target_group_name].length }.max,
-      target_size_len: target_info.map { |t_info| t_info[:target_size].length }.max
+      nlink_len: target_info.map { |info| info[:nlink].length }.max,
+      user_name_len: target_info.map { |info| info[:target_user_name].length }.max,
+      group_name_len: target_info.map { |info| info[:target_group_name].length }.max,
+      target_size_len: target_info.map { |info| info[:target_size].length }.max
     }
   end
 
   def format_target_info(target_info, each_info_length)
-    target_info.map do |t_info|
-      t_info[:target_type] = t_info[:target_type] == 'f' ? '-' : t_info[:target_type]
-      t_info[:nlink] = t_info[:nlink].rjust(each_info_length[:nlink_len] + 1)
-      t_info[:target_user_name] = t_info[:target_user_name].ljust(each_info_length[:user_name_len] + 1)
-      t_info[:target_group_name] = t_info[:target_group_name].ljust(each_info_length[:group_name_len] + 1)
-      t_info[:target_size] = t_info[:target_size].rjust(each_info_length[:target_size_len])
-      t_info
+    target_info.map do |info|
+      info[:target_type] = info[:target_type] == 'f' ? '-' : info[:target_type]
+      info[:nlink] = info[:nlink].rjust(each_info_length[:nlink_len] + 1)
+      info[:target_user_name] = info[:target_user_name].ljust(each_info_length[:user_name_len] + 1)
+      info[:target_group_name] = info[:target_group_name].ljust(each_info_length[:group_name_len] + 1)
+      info[:target_size] = info[:target_size].rjust(each_info_length[:target_size_len])
+      info
     end
   end
 

@@ -2,7 +2,7 @@
 
 require_relative './content_producer'
 
-class DirContent
+class SubContents
   include ContentProducer
 
   TAB_LENGTH = 8

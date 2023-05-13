@@ -5,7 +5,7 @@ module ContentProducer
 
   def fetch_contents(dir_path, options)
     target_contents = []
-    return dir_path if FileTest.file?(dir_path)
+    return [dir_path] if FileTest.file?(dir_path)
 
     return unless Dir.exist?(dir_path)
 
