@@ -20,9 +20,9 @@ class ContentInfo
     end
 
     target_info = produce_target_info
-    each_info_length = calculate_longest_info_length(target_info)
+    each_info_length = calculate_each_info_longest_length(target_info)
     formatted_target_info = format_target_info(target_info, each_info_length)
-    output_info_lists(formatted_target_info)
+    output_content_info(formatted_target_info)
   end
 
   private
@@ -41,12 +41,12 @@ class ContentInfo
         target_group_name: Etc.getgrgid(target_info.gid).name,
         target_size: target_info.size.to_s,
         created_time: target_info.mtime >= half_year_ago ? target_info.mtime.strftime('%_m %_d %H:%M') : target_info.mtime.strftime('%_m %_d  %_Y'),
-        basename: @target_contents.size == 1 && FileTest.file?(@dir_path) ? @original_target : File.basename(target_content)
+        basename: @target_contents.size == 1 && FileTest.file?(target_content) ? @original_dir_path : File.basename(target_content)
       }
     end
   end
 
-  def calculate_longest_info_length(target_info)
+  def calculate_each_info_longest_length(target_info)
     {
       nlink_len: target_info.map { |info| info[:nlink].length }.max,
       user_name_len: target_info.map { |info| info[:target_user_name].length }.max,
@@ -66,9 +66,8 @@ class ContentInfo
     end
   end
 
-  def output_info_lists(formatted_target_info)
+  def output_content_info(formatted_target_info)
     puts "total #{@block_size}" if Dir.exist?(@dir_path)
-    # format = "%s%s %s %s %s %s %s %s\n"
     formatted_target_info.each do |info|
       print("#{info[:target_type]}#{info[:target_permission]} #{info[:nlink]} #{info[:target_user_name]} \
 #{info[:target_group_name]} #{info[:target_size]} #{info[:created_time]} #{info[:basename]}\n")
