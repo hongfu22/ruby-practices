@@ -8,8 +8,8 @@ options = ARGV.getopts('a', 'l', 'r')
 dir_path = ARGV.empty? ? '.' : ARGV[0]
 
 if options['l']
-  dir_info = DirInfo.new(dir_path, options)
-  dir_info.produce_dir_info
+  dir_info = InfoList.new(dir_path, options)
+  dir_info.produce_info_
 else
   dir_contents = DirContent.new(dir_path, options)
   dir_contents.produce_dir_contents

@@ -3,7 +3,7 @@
 require 'etc'
 require_relative './content_producer'
 
-class InfoList
+class ContentInfo
   include ContentProducer
 
   def initialize(dir_path, options)
