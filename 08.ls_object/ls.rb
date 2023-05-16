@@ -8,9 +8,9 @@ options = ARGV.getopts('a', 'l', 'r')
 input_target = ARGV.empty? ? '.' : ARGV[0]
 
 if options['l']
-  content_info = ContentsInfo.new(input_target, options)
-  content_info.produce_target_details
+  target_details = DetailedContents.new(input_target, options)
+  target_details.produce_target_info
 else
-  sub_contents = DirSubContents.new(input_target, options)
-  sub_contents.produce_within_target
+  target_sub_contents = DirSubContents.new(input_target, options)
+  target_sub_contents.produce_within_target
 end

@@ -3,7 +3,7 @@
 require 'etc'
 require_relative './contents_producer'
 
-class ContentsInfo
+class DetailedContents
   include ContentsProducer
 
   def initialize(input_target, options)
@@ -13,21 +13,21 @@ class ContentsInfo
     @input_target = Dir.exist?(input_target) ? "#{File.expand_path(input_target)}/" : ''
   end
 
-  def produce_target_details
+  def produce_target_info
     if @target_contents.nil?
       puts format('ls.rb: %s: No such file or directory', @original_target)
       return
     end
 
-    target_info = produce_target_info
-    each_info_length = calculate_each_info_longest_length(target_info)
-    formatted_target_info = format_target_info(target_info, each_info_length)
-    output_contents_info(formatted_target_info)
+    target_details = produce_target_details
+    each_info_length = calculate_each_info_longest_length(target_details)
+    formatted_target_details = format_target_details(target_details, each_info_length)
+    output_contents_details(formatted_target_details)
   end
 
   private
 
-  def produce_target_info
+  def produce_target_details
     half_year_ago = Time.new - 24 * 60 * 60 * 180
     @target_contents.map do |target_content|
       target_content = @input_target + target_content
@@ -46,31 +46,31 @@ class ContentsInfo
     end
   end
 
-  def calculate_each_info_longest_length(target_info)
+  def calculate_each_info_longest_length(target_details)
     {
-      nlink_len: target_info.map { |info| info[:nlink].length }.max,
-      user_name_len: target_info.map { |info| info[:target_user_name].length }.max,
-      group_name_len: target_info.map { |info| info[:target_group_name].length }.max,
-      target_size_len: target_info.map { |info| info[:target_size].length }.max
+      nlink_len: target_details.map { |target_detail| target_detail[:nlink].length }.max,
+      user_name_len: target_details.map { |target_detail| target_detail[:target_user_name].length }.max,
+      group_name_len: target_details.map { |target_detail| target_detail[:target_group_name].length }.max,
+      target_size_len: target_details.map { |target_detail| target_detail[:target_size].length }.max
     }
   end
 
-  def format_target_info(target_info, each_info_length)
-    target_info.map do |info|
-      info[:target_type] = info[:target_type] == 'f' ? '-' : info[:target_type]
-      info[:nlink] = info[:nlink].rjust(each_info_length[:nlink_len] + 1)
-      info[:target_user_name] = info[:target_user_name].ljust(each_info_length[:user_name_len] + 1)
-      info[:target_group_name] = info[:target_group_name].ljust(each_info_length[:group_name_len] + 1)
-      info[:target_size] = info[:target_size].rjust(each_info_length[:target_size_len])
-      info
+  def format_target_details(target_details, each_info_length)
+    target_details.map do |target_detail|
+      target_detail[:target_type] = target_detail[:target_type] == 'f' ? '-' : target_detail[:target_type]
+      target_detail[:nlink] = target_detail[:nlink].rjust(each_info_length[:nlink_len] + 1)
+      target_detail[:target_user_name] = target_detail[:target_user_name].ljust(each_info_length[:user_name_len] + 1)
+      target_detail[:target_group_name] = target_detail[:target_group_name].ljust(each_info_length[:group_name_len] + 1)
+      target_detail[:target_size] = target_detail[:target_size].rjust(each_info_length[:target_size_len])
+      target_detail
     end
   end
 
-  def output_contents_info(formatted_target_info)
+  def output_contents_details(formatted_target_details)
     puts "total #{@block_size}" if Dir.exist?(@input_target)
-    formatted_target_info.each do |info|
-      print("#{info[:target_type]}#{info[:target_permission]} #{info[:nlink]} #{info[:target_user_name]} \
-#{info[:target_group_name]} #{info[:target_size]} #{info[:created_time]} #{info[:basename]}\n")
+    formatted_target_details.each do |formatted_detail|
+      print("#{formatted_detail[:target_type]}#{formatted_detail[:target_permission]} #{formatted_detail[:nlink]} #{formatted_detail[:target_user_name]} \
+#{formatted_detail[:target_group_name]} #{formatted_detail[:target_size]} #{formatted_detail[:created_time]} #{formatted_detail[:basename]}\n")
     end
   end
 
