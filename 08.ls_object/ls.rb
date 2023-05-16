@@ -2,7 +2,7 @@
 
 require 'optparse'
 require_relative './dir_sub_contents'
-require_relative './contents_info'
+require_relative './detailed_contents'
 
 options = ARGV.getopts('a', 'l', 'r')
 input_target = ARGV.empty? ? '.' : ARGV[0]
