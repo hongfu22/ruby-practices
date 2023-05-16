@@ -3,19 +3,19 @@
 require 'etc'
 require_relative './content_producer'
 
-class ContentInfo
-  include ContentProducer
+class ContentsInfo
+  include ContentsProducer
 
-  def initialize(dir_path, options)
-    @target_contents = fetch_contents(dir_path, options)
+  def initialize(input_target, options)
+    @target_contents = fetch_contents(input_target, options)
     @block_size = 0
-    @original_dir_path = dir_path
-    @dir_path = Dir.exist?(dir_path) ? "#{File.expand_path(dir_path)}/" : ''
+    @original_target = input_target
+    @input_target = Dir.exist?(input_target) ? "#{File.expand_path(input_target)}/" : ''
   end
 
-  def produce_content_info
+  def show_info
     if @target_contents.nil?
-      puts format('ls.rb: %s: No such file or directory', @original_dir_path)
+      puts format('ls.rb: %s: No such file or directory', @original_target)
       return
     end
 
@@ -30,7 +30,7 @@ class ContentInfo
   def produce_target_info
     half_year_ago = Time.new - 24 * 60 * 60 * 180
     @target_contents.map do |target_content|
-      target_content = @dir_path + target_content
+      target_content = @input_target + target_content
       target_info = File.stat(target_content)
       @block_size += target_info.blocks
       {
@@ -41,7 +41,7 @@ class ContentInfo
         target_group_name: Etc.getgrgid(target_info.gid).name,
         target_size: target_info.size.to_s,
         created_time: target_info.mtime >= half_year_ago ? target_info.mtime.strftime('%_m %_d %H:%M') : target_info.mtime.strftime('%_m %_d  %_Y'),
-        basename: @target_contents.size == 1 && FileTest.file?(target_content) ? @original_dir_path : File.basename(target_content)
+        basename: @target_contents.size == 1 && FileTest.file?(target_content) ? @original_target : File.basename(target_content)
       }
     end
   end
@@ -67,7 +67,7 @@ class ContentInfo
   end
 
   def output_content_info(formatted_target_info)
-    puts "total #{@block_size}" if Dir.exist?(@dir_path)
+    puts "total #{@block_size}" if Dir.exist?(@input_target)
     formatted_target_info.each do |info|
       print("#{info[:target_type]}#{info[:target_permission]} #{info[:nlink]} #{info[:target_user_name]} \
 #{info[:target_group_name]} #{info[:target_size]} #{info[:created_time]} #{info[:basename]}\n")

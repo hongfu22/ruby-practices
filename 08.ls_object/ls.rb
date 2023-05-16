@@ -5,12 +5,12 @@ require_relative './sub_contents'
 require_relative './content_info'
 
 options = ARGV.getopts('a', 'l', 'r')
-dir_path = ARGV.empty? ? '.' : ARGV[0]
+input_target = ARGV.empty? ? '.' : ARGV[0]
 
 if options['l']
-  content_info = ContentInfo.new(dir_path, options)
-  content_info.produce_content_info
+  content_info = ContentsInfo.new(input_target, options)
+  content_info.show_info
 else
-  sub_contents = SubContents.new(dir_path, options)
-  sub_contents.produce_sub_contents
+  sub_contents = DirSubContents.new(input_target, options)
+  sub_contents.show_contents
 end

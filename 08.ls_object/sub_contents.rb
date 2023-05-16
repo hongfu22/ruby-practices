@@ -2,21 +2,21 @@
 
 require_relative './content_producer'
 
-class SubContents
-  include ContentProducer
+class DirSubContents
+  include ContentsProducer
 
   TAB_LENGTH = 8
   private_constant :TAB_LENGTH
 
-  def initialize(dir_path, options)
+  def initialize(input_target, options)
     @col_num = 3
-    @dir_path = dir_path
-    @target_contents = fetch_contents(dir_path, options)
+    @input_target = input_target
+    @target_contents = fetch_contents(input_target, options)
   end
 
-  def produce_sub_contents(col_num = @col_num)
+  def show_contents(col_num = @col_num)
     if @target_contents.nil?
-      puts format('ls.rb: %s: No such file or directory', @dir_path)
+      puts format('ls.rb: %s: No such file or directory', @input_target)
       return
     end
 
@@ -28,7 +28,7 @@ class SubContents
     row_count = (@target_contents.length / col_num.to_f).ceil
     max_length = calculate_longest_file_name_length
     if too_wide_row?(max_length)
-      produce_sub_contents(@col_num -= 1)
+      show_contents(@col_num -= 1)
       return
     end
 

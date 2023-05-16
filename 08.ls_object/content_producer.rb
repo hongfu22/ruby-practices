@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module ContentProducer
+module ContentsProducer
   private
 
   def fetch_contents(dir_path, options)
