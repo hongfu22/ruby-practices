@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative './content_producer'
+require_relative './contents_producer'
 
 class DirSubContents
   include ContentsProducer
@@ -14,7 +14,7 @@ class DirSubContents
     @target_contents = fetch_contents(input_target, options)
   end
 
-  def show_contents(col_num = @col_num)
+  def produce_within_target(col_num = @col_num)
     if @target_contents.nil?
       puts format('ls.rb: %s: No such file or directory', @input_target)
       return
@@ -28,7 +28,7 @@ class DirSubContents
     row_count = (@target_contents.length / col_num.to_f).ceil
     max_length = calculate_longest_file_name_length
     if too_wide_row?(max_length)
-      show_contents(@col_num -= 1)
+      produce_within_target(@col_num -= 1)
       return
     end
 

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'etc'
-require_relative './content_producer'
+require_relative './contents_producer'
 
 class ContentsInfo
   include ContentsProducer
@@ -13,7 +13,7 @@ class ContentsInfo
     @input_target = Dir.exist?(input_target) ? "#{File.expand_path(input_target)}/" : ''
   end
 
-  def show_info
+  def produce_target_details
     if @target_contents.nil?
       puts format('ls.rb: %s: No such file or directory', @original_target)
       return
@@ -22,7 +22,7 @@ class ContentsInfo
     target_info = produce_target_info
     each_info_length = calculate_each_info_longest_length(target_info)
     formatted_target_info = format_target_info(target_info, each_info_length)
-    output_content_info(formatted_target_info)
+    output_contents_info(formatted_target_info)
   end
 
   private
@@ -66,7 +66,7 @@ class ContentsInfo
     end
   end
 
-  def output_content_info(formatted_target_info)
+  def output_contents_info(formatted_target_info)
     puts "total #{@block_size}" if Dir.exist?(@input_target)
     formatted_target_info.each do |info|
       print("#{info[:target_type]}#{info[:target_permission]} #{info[:nlink]} #{info[:target_user_name]} \
