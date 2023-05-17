@@ -13,21 +13,21 @@ class DetailedContents
     @input_target = Dir.exist?(input_target) ? "#{File.expand_path(input_target)}/" : ''
   end
 
-  def produce_target_info
+  def produce_target_details
     if @target_contents.nil?
       puts format('ls.rb: %s: No such file or directory', @original_target)
       return
     end
 
-    target_details = produce_target_details
+    target_details = produce_targets_info
     each_info_length = calculate_each_info_longest_length(target_details)
     formatted_target_details = format_target_details(target_details, each_info_length)
-    output_contents_details(formatted_target_details)
+    output_target_details(formatted_target_details)
   end
 
   private
 
-  def produce_target_details
+  def produce_targets_info
     half_year_ago = Time.new - 24 * 60 * 60 * 180
     @target_contents.map do |target_content|
       target_content = @input_target + target_content
@@ -66,7 +66,7 @@ class DetailedContents
     end
   end
 
-  def output_contents_details(formatted_target_details)
+  def output_target_details(formatted_target_details)
     puts "total #{@block_size}" if Dir.exist?(@input_target)
     formatted_target_details.each do |formatted_detail|
       print("#{formatted_detail[:target_type]}#{formatted_detail[:target_permission]} #{formatted_detail[:nlink]} #{formatted_detail[:target_user_name]} \
