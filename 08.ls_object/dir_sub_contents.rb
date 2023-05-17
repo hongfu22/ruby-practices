@@ -2,7 +2,7 @@
 
 require_relative './contents_producer'
 
-class DirSubContents
+class IncludedContents
   include ContentsProducer
 
   TAB_LENGTH = 8
@@ -21,7 +21,7 @@ class DirSubContents
     end
 
     if col_num == 1 || @target_contents.empty?
-      output_sub_contents(@target_contents)
+      output_within_target(@target_contents)
       return
     end
 
@@ -33,7 +33,7 @@ class DirSubContents
     end
 
     rows = produce_each_row(row_count, max_length)
-    output_sub_contents(rows)
+    output_within_target(rows)
   end
 
   private
@@ -60,7 +60,7 @@ class DirSubContents
     row_width >= `tput cols`.to_i
   end
 
-  def output_sub_contents(rows)
+  def output_within_target(rows)
     rows.each { |row| puts row }
   end
 end

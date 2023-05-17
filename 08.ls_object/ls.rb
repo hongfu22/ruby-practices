@@ -11,6 +11,6 @@ if options['l']
   target_details = DetailedContents.new(input_target, options)
   target_details.produce_target_info
 else
-  target_contents = DirSubContents.new(input_target, options)
+  target_contents = IncludedContents.new(input_target, options)
   target_contents.produce_within_target
 end
