@@ -3,17 +3,17 @@
 module ContentsProducer
   private
 
-  def fetch_contents(dir_path, options)
+  def fetch_contents(input_target, options)
     target_contents = []
-    return [dir_path] if FileTest.file?(dir_path)
+    return [input_target] if FileTest.file?(input_target)
 
-    return unless Dir.exist?(dir_path)
+    return unless Dir.exist?(input_target)
 
     if options['a']
-      target_contents = Dir.glob('*', File::FNM_DOTMATCH, base: dir_path)
+      target_contents = Dir.glob('*', File::FNM_DOTMATCH, base: input_target)
       target_contents.insert(1, '..')
     else
-      target_contents = Dir.glob('*', base: dir_path)
+      target_contents = Dir.glob('*', base: input_target)
     end
     target_contents.reverse! if options['r']
     target_contents
