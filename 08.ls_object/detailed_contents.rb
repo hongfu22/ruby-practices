@@ -28,20 +28,33 @@ class DetailedContents
   private
 
   def produce_targets_info
-    half_year_ago = Time.new - 24 * 60 * 60 * 180
+    stat_objects = produce_stat_objects
+    @total_block_size = calculate_total_block_size(stat_objects)
+    produce_target_contents(stat_objects)
+  end
+
+  def produce_stat_objects
     @target_contents.map do |target_content|
-      target_content = @input_path + target_content
-      target_info = File.stat(target_content)
-      @total_block_size += target_info.blocks
+      File.stat(@input_path + target_content)
+    end
+  end
+
+  def calculate_total_block_size(stat_objects)
+    stat_objects.sum(&:blocks)
+  end
+
+  def produce_target_contents(stat_objects)
+    half_year_ago = Time.new - 24 * 60 * 60 * 180
+    stat_objects.map.with_index do |stat_object, index|
       {
-        target_type: target_info.ftype[0],
-        target_permission: transform_permission(target_info.mode.to_s(8)[-3..]),
-        nlink: target_info.nlink.to_s,
-        target_user_name: Etc.getpwuid(target_info.uid).name,
-        target_group_name: Etc.getgrgid(target_info.gid).name,
-        target_size: target_info.size.to_s,
-        created_time: target_info.mtime >= half_year_ago ? target_info.mtime.strftime('%_m %_d %H:%M') : target_info.mtime.strftime('%_m %_d  %_Y'),
-        basename: @target_contents.size == 1 && FileTest.file?(target_content) ? @input_target : File.basename(target_content)
+        target_type: stat_object.ftype[0],
+        target_permission: transform_permission(stat_object.mode.to_s(8)[-3..]),
+        nlink: stat_object.nlink.to_s,
+        target_user_name: Etc.getpwuid(stat_object.uid).name,
+        target_group_name: Etc.getgrgid(stat_object.gid).name,
+        target_size: stat_object.size.to_s,
+        created_time: stat_object.mtime >= half_year_ago ? stat_object.mtime.strftime('%_m %_d %H:%M') : stat_object.mtime.strftime('%_m %_d  %_Y'),
+        basename: @target_contents.size == 1 && FileTest.file?(@target_contents[index]) ? @input_target : File.basename(@target_contents[index])
       }
     end
   end
