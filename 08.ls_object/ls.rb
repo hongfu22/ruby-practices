@@ -5,12 +5,12 @@ require_relative './included_contents'
 require_relative './detailed_contents'
 
 options = ARGV.getopts('a', 'l', 'r')
-input_target = ARGV.empty? ? '.' : ARGV[0]
+target = ARGV.empty? ? '.' : ARGV[0]
 
 if options['l']
-  target_details = DetailedContents.new(input_target, options)
-  target_details.produce_target_details
+  target_contents = DetailedContents.new(target, options)
+  target_contents.produce_target_details
 else
-  target_contents = IncludedContents.new(input_target, options)
-  target_contents.produce_within_target
+  target_contents = InputContents.new(target, options)
+  target_contents.produce_input_target
 end

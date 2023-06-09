@@ -6,28 +6,28 @@ require_relative './contents_producer'
 class DetailedContents
   include ContentsProducer
 
-  def initialize(input_target, options)
-    @target_contents = fetch_contents(input_target, options)
+  def initialize(target, options)
+    @target_contents = fetch_contents(target, options)
     @total_block_size = 0
-    @input_target = input_target
-    @input_path = Dir.exist?(input_target) ? "#{File.expand_path(input_target)}/" : ''
+    @target = target
+    @path = Dir.exist?(target) ? "#{File.expand_path(target)}/" : ''
   end
 
   def produce_target_details
     if @target_contents.nil?
-      puts format('ls.rb: %s: No such file or directory', @input_target)
+      puts format('ls.rb: %s: No such file or directory', @target)
       return
     end
 
-    target_details = produce_targets_info
-    each_info_max_length = calculate_each_info_max_length(target_details)
-    formatted_target_details = format_target_details(target_details, each_info_max_length)
+    contents_details = produce_contents_details
+    each_info_max_length = calculate_each_info_max_length(contents_details)
+    formatted_target_details = format_target_details(contents_details, each_info_max_length)
     output_target_details(formatted_target_details)
   end
 
   private
 
-  def produce_targets_info
+  def produce_contents_details
     stat_objects = produce_stat_objects
     @total_block_size = calculate_total_block_size(stat_objects)
     produce_target_contents(stat_objects)
@@ -35,7 +35,7 @@ class DetailedContents
 
   def produce_stat_objects
     @target_contents.map do |target_content|
-      File.stat(@input_path + target_content)
+      File.stat(@path + target_content)
     end
   end
 
@@ -54,7 +54,7 @@ class DetailedContents
         target_group_name: Etc.getgrgid(stat_object.gid).name,
         target_size: stat_object.size.to_s,
         created_time: stat_object.mtime >= half_year_ago ? stat_object.mtime.strftime('%_m %_d %H:%M') : stat_object.mtime.strftime('%_m %_d  %_Y'),
-        basename: @target_contents.size == 1 && FileTest.file?(@target_contents[index]) ? @input_target : File.basename(@target_contents[index])
+        basename: @target_contents.size == 1 && FileTest.file?(@target_contents[index]) ? @target : File.basename(@target_contents[index])
       }
     end
   end
@@ -83,7 +83,7 @@ class DetailedContents
   end
 
   def output_target_details(formatted_target_details)
-    puts "total #{@total_block_size}" if Dir.exist?(@input_path)
+    puts "total #{@total_block_size}" if Dir.exist?(@path)
     formatted_target_details.each do |formatted_detail|
       print("#{formatted_detail.join(' ')}\n")
     end

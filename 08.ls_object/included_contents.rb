@@ -2,38 +2,38 @@
 
 require_relative './contents_producer'
 
-class IncludedContents
+class InputContents
   include ContentsProducer
 
   TAB_LENGTH = 8
   private_constant :TAB_LENGTH
 
-  def initialize(input_target, options)
+  def initialize(target, options)
     @column_number = 3
-    @input_target = input_target
-    @target_contents = fetch_contents(input_target, options)
+    @target = target
+    @target_contents = fetch_contents(target, options)
   end
 
-  def produce_within_target(column_number = @column_number)
+  def produce_input_target(column_number = @column_number)
     if @target_contents.nil?
-      puts format('ls.rb: %s: No such file or directory', @input_target)
+      puts format('ls.rb: %s: No such file or directory', @target)
       return
     end
 
     if column_number == 1 || @target_contents.empty?
-      output_within_target(@target_contents)
+      output_input_target(@target_contents)
       return
     end
 
     row_count = (@target_contents.length / column_number.to_f).ceil
     max_length = calculate_max_file_name_length
     if too_wide_row?(max_length)
-      produce_within_target(@column_number -= 1)
+      produce_input_target(@column_number -= 1)
       return
     end
 
     rows = produce_rows(row_count, max_length)
-    output_within_target(rows)
+    output_input_target(rows)
   end
 
   private
@@ -60,7 +60,7 @@ class IncludedContents
     row_width >= `tput cols`.to_i
   end
 
-  def output_within_target(rows)
+  def output_input_target(rows)
     rows.each { |row| puts row }
   end
 end
