@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'optparse'
-require_relative './included_contents'
+require_relative './input_contents'
 require_relative './detailed_contents'
 
 options = ARGV.getopts('a', 'l', 'r')
