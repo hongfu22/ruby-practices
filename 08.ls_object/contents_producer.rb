@@ -7,7 +7,7 @@ module ContentsProducer
     target_contents = []
     return [input_target] if FileTest.file?(input_target)
 
-    return unless Dir.exist?(input_target)
+    return nil unless Dir.exist?(input_target)
 
     if options['a']
       target_contents = Dir.glob('*', File::FNM_DOTMATCH, base: input_target)
