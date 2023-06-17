@@ -85,7 +85,7 @@ class DetailedContents
   def output_target_details(formatted_target_details)
     puts "total #{@total_block_size}" if Dir.exist?(@path)
     formatted_target_details.each do |formatted_detail|
-      puts("#{formatted_detail.join(' ')}")
+      puts formatted_detail.join(' ')
     end
   end
 
